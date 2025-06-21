@@ -16,7 +16,7 @@ A curated collection of scripts for system administration, security, and monitor
 
 | Script                                                                                       | Description                          | Category/SO        |
 |----------------------------------------------------------------------------------------------|--------------------------------------|--------------------|
-| script | description | category |
+| security-check-cve-2025-6018-6019.sh                                                        | Check for CVE-2025-6018 and CVE-2025-6019 vulnerabilities (PAM, udisks2/libblockdev) | Security / Linux   |
 
 
 ## Usage

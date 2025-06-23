@@ -46,6 +46,6 @@ This project is licensed under the [GNU GPL v2](LICENSE).
 
 ## Security
 
-If you discover a security vulnerability, please follow the instructions in our [Security Policy](./.github/SECURITY.md) before disclosing any details publicly.
+If you discover a security vulnerability, please follow the instructions in our [Security Policy](SECURITY.md) before disclosing any details publicly.
 
 You can also use GitHub Issues to report security concerns, following the process described in the policy.

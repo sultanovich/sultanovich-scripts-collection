@@ -1,3 +1,8 @@
+> **🌍 This project is available in English and Spanish.**  
+> [🇪🇸 Español](./CONTRIBUTING.es.md) | [🇬🇧 English](./CONTRIBUTING.md)
+>
+> ---
+
 # Contributing Guide
 
 Thank you for your interest in contributing to this repository!

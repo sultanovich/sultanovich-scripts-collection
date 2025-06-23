@@ -1,3 +1,8 @@
+> **🌍 This project is available in English and Spanish.**  
+> [🇪🇸 Español](./SECURITY.es.md) | [🇬🇧 English](./SECURITY.md)
+>
+> ---
+
 # Security Policy
 
 ## Reporting a Vulnerability

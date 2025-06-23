@@ -1,3 +1,8 @@
+> **🌍 This project is available in English and Spanish.**  
+> [🇬🇧 English](./README.md) | [🇪🇸 Español](./README.es.md)
+>
+> ---
+
 # Sultanovich Scripts Collection
 
 A curated collection of scripts for system administration, security, and monitoring across multiple operating systems. This repository is structured to be clear and scalable.

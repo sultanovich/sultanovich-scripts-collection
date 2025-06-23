@@ -18,6 +18,7 @@ A curated collection of scripts for system administration, security, and monitor
 |----------------------------------------------------------------------------------------------|--------------------------------------|--------------------|
 | security-check-cve-2025-6018-6019.sh                                                        | Check for CVE-2025-6018 and CVE-2025-6019 vulnerabilities (PAM, udisks2/libblockdev) | Security / Linux   |
 | add-linux-local-user.sh                                                       | Bash script to create a local Linux user with password expiration policy (SOC/PCI compliant), secure logging, and login test. | Sysadmin / Linux   |
+| [delete-linux-local-user.sh](scripts/sysadmin/linux/delete-linux-local-user.sh) | Bash script to securely delete a local Linux user (with optional home dir removal), secure logging, dry-run mode, and compliance protections. | Sysadmin / Linux   |
 
 
 ## Usage

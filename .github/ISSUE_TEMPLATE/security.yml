@@ -1,0 +1,32 @@
+name: "Security Issue"
+description: "Report a potential security vulnerability"
+labels: ["security", "confidential"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Sensitive information:**  
+        Do **NOT** include sensitive details or full proofs of concept in this issue. Provide a summary, and maintainers will reach out if more details are needed privately.
+  - type: textarea
+    id: summary
+    attributes:
+      label: "Summary of the vulnerability"
+      description: "Provide a concise description of the suspected security issue."
+      placeholder: "Describe the nature of the vulnerability in general terms."
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: "Potential impact"
+      description: "What could an attacker achieve by exploiting this vulnerability?"
+      placeholder: "e.g., unauthorized access, data leak, etc."
+    validations:
+      required: false
+  - type: input
+    id: contact
+    attributes:
+      label: "Contact info (optional)"
+      description: "If you are willing to provide more details privately, please leave your preferred contact method or wait for a maintainer to reach out via GitHub."
+    validations:
+      required: false

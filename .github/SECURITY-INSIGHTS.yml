@@ -1,0 +1,13 @@
+version: 1.0.0
+contact:
+  - type: issue-tracker
+    url: https://github.com/sultanovich/sultanovich-scripts-collection/issues
+    label: security
+    description: Use GitHub Issues to report security vulnerabilities. Please include the label "security".
+policy:
+  - url: https://github.com/sultanovich/sultanovich-scripts-collection/blob/main/.github/SECURITY.md
+    description: Official security policy and response process.
+encryption: []
+preferred_languages:
+  - en
+acknowledgements: []

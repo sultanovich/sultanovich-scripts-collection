@@ -10,18 +10,22 @@ Una colección seleccionada de scripts para administración de sistemas, segurid
 ## Estructura
 
 - `scripts/`
-  - `security/`: Scripts relacionados con seguridad (por ejemplo, chequeos de vulnerabilidades, hardening)
-  - `sysadmin/`: Tareas de administración de sistemas (por ejemplo, gestión de usuarios)
+  - `security/`: Scripts relacionados con seguridad, como chequeos de vulnerabilidades y hardening.
+    - `python/`: Utilidades desarrolladas en Python para scripting multiplataforma (siempre que se cuente con Python y sus dependencias instaladas).
+    - `linux/`: Scripts específicos para sistemas operativos GNU/Linux (aunque la mayoría también funcionará en otros sistemas tipo Unix).
+    - `windows/`: Scripts específicos para el sistema operativo Windows.
+  - `sysadmin/`: Scripts para tareas de administración de sistemas, como gestión de usuarios y automatización de tareas administrativas. 
+    - `python/`: Utilidades desarrolladas en Python para scripting multiplataforma. Estas herramientas están diseñadas para funcionar en distintos sistemas operativos, siempre que se cuente con Python y sus dependencias instaladas.
+    - `linux/`: Scripts específicos para sistemas operativos GNU/Linux (aunque la mayoría también funcionará en otros sistemas tipo Unix).
+    - `windows/`: Scripts específicos para el sistema operativo Windows.
 
-> [!TIP]
-> Cada categoría contiene carpetas específicas por sistema operativo (`linux/`, `windows/`, etc.) y subcarpetas para aplicaciones específicas (si es necesario).
 
 ## Resumen de Scripts
 
 | Script                                                                                       | Descripción                                      | Categoría/SO        |
 |----------------------------------------------------------------------------------------------|--------------------------------------------------|---------------------|
-| security-check-cve-2025-6018-6019.sh                                                        | Verifica vulnerabilidades CVE-2025-6018 y CVE-2025-6019 (PAM, udisks2/libblockdev) | Seguridad / Linux   |
-| add-linux-local-user.sh                                                        | Script Bash para crear un usuario local en Linux con política de expiración de contraseña (SOC/PCI compliant), registro seguro, etc. | Sysadmin / Linux    |
+| [security-check-cve-2025-6018-6019.sh](scripts/security/linux/security-check-cve-2025-6018-6019.sh)                                                        | Verifica vulnerabilidades CVE-2025-6018 y CVE-2025-6019 (PAM, udisks2/libblockdev) | Seguridad / Linux   |
+| [add-linux-local-user.sh](scripts/sysadmin/linux/add-linux-local-user.sh)                                                       | Script Bash para crear un usuario local en Linux con política de expiración de contraseña (SOC/PCI compliant), registro seguro, etc. | Sysadmin / Linux    |
 | [delete-linux-local-user.sh](scripts/sysadmin/linux/delete-linux-local-user.sh) | Script Bash para eliminar de forma segura un usuario local de Linux (con opción de eliminar el home), registro seguro, modo dry-run, etc. | Sysadmin / Linux    |
 | [security-check-cve-2025-4322.sh](scripts/security/linux/security-check-cve-2025-4322.sh) | Verifica la vulnerabilidad CVE-2025-4322 (Motors Theme para WordPress) y opcionalmente intenta un PoC seguro (cambio de contraseña del usuario admin) | Seguridad / Linux   |
 

@@ -10,19 +10,22 @@ A curated collection of scripts for system administration, security, and monitor
 ## Structure
 
 - `scripts/`
-  - `security/`: Security-related scripts (e.g., vulnerability checks, hardening)
-  - `sysadmin/`: System administration tasks (e.g., user management)
+  - `security/`: Security-related scripts, such as vulnerability checks and hardening tasks.
+    - `python/`: Utilities developed in Python for cross-platform scripting (as long as Python and its dependencies are installed).
+    - `linux/`: Scripts specific to GNU/Linux operating systems (although most will also work on other Unix-like systems).
+    - `windows/`: Scripts specific to the Windows operating system.
+  - `sysadmin/`: Scripts for system administration tasks, such as user management and automation of administrative processes.
+    - `python/`: Utilities developed in Python for cross-platform scripting. These tools are designed to work on multiple operating systems, provided Python and its dependencies are available.
+    - `linux/`: Scripts specific to GNU/Linux operating systems (although most will also work on other Unix-like systems).
+    - `windows/`: Scripts specific to the Windows operating system.
 
-
-> [!TIP]
-> Each category contains OS-specific folders (`linux/`, `windows/`, etc.) and subfolders for specific applications (if needed).
 
 ## Scripts Summary
 
 | Script                                                                                       | Description                          | Category/SO        |
 |----------------------------------------------------------------------------------------------|--------------------------------------|--------------------|
-| security-check-cve-2025-6018-6019.sh                                                        | Check for CVE-2025-6018 and CVE-2025-6019 vulnerabilities (PAM, udisks2/libblockdev) | Security / Linux   |
-| add-linux-local-user.sh                                                       | Bash script to create a local Linux user with password expiration policy (SOC/PCI compliant), secure logging, and login test. | Sysadmin / Linux   |
+| [security-check-cve-2025-6018-6019.sh](scripts/security/linux/security-check-cve-2025-6018-6019.sh)                                                         | Check for CVE-2025-6018 and CVE-2025-6019 vulnerabilities (PAM, udisks2/libblockdev) | Security / Linux   |
+| [add-linux-local-user.sh](scripts/sysadmin/linux/add-linux-local-user.sh)                                                      | Bash script to create a local Linux user with password expiration policy (SOC/PCI compliant), secure logging, and login test. | Sysadmin / Linux   |
 | [delete-linux-local-user.sh](scripts/sysadmin/linux/delete-linux-local-user.sh) | Bash script to securely delete a local Linux user (with optional home dir removal), secure logging, dry-run mode, and compliance protections. | Sysadmin / Linux   |
 | [security-check-cve-2025-4322.sh](scripts/security/linux/security-check-cve-2025-4322.sh) | Checks for CVE-2025-4322 vulnerability (Motors WordPress Theme) and optionally attempts a safe PoC (admin password change) | Security / Linux    |
 

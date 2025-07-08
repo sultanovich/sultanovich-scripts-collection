@@ -28,6 +28,8 @@ Una colección seleccionada de scripts para administración de sistemas, segurid
 | [add-linux-local-user.sh](scripts/sysadmin/linux/add-linux-local-user.sh)                                                       | Script Bash para crear un usuario local en Linux con política de expiración de contraseña (SOC/PCI compliant), registro seguro, etc. | Sysadmin / Linux    |
 | [delete-linux-local-user.sh](scripts/sysadmin/linux/delete-linux-local-user.sh) | Script Bash para eliminar de forma segura un usuario local de Linux (con opción de eliminar el home), registro seguro, modo dry-run, etc. | Sysadmin / Linux    |
 | [security-check-cve-2025-4322.sh](scripts/security/linux/security-check-cve-2025-4322.sh) | Verifica la vulnerabilidad CVE-2025-4322 (Motors Theme para WordPress) y opcionalmente intenta un PoC seguro (cambio de contraseña del usuario admin) | Seguridad / Linux   |
+| [gha-prtarget-misconfig-audit.py](scripts/security/python/gha-prtarget-misconfig-audit/gha-prtarget-misconfig-audit.py) | Audita GitHub Actions en busca de configuraciones inseguras del evento `pull_request_target` que pueden exponer secretos o permitir la ejecución de PRs desde forks no confiables | Seguridad / Python |
+
 
 ## Uso
 

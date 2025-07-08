@@ -28,6 +28,9 @@ A curated collection of scripts for system administration, security, and monitor
 | [add-linux-local-user.sh](scripts/sysadmin/linux/add-linux-local-user.sh)                                                      | Bash script to create a local Linux user with password expiration policy (SOC/PCI compliant), secure logging, and login test. | Sysadmin / Linux   |
 | [delete-linux-local-user.sh](scripts/sysadmin/linux/delete-linux-local-user.sh) | Bash script to securely delete a local Linux user (with optional home dir removal), secure logging, dry-run mode, and compliance protections. | Sysadmin / Linux   |
 | [security-check-cve-2025-4322.sh](scripts/security/linux/security-check-cve-2025-4322.sh) | Checks for CVE-2025-4322 vulnerability (Motors WordPress Theme) and optionally attempts a safe PoC (admin password change) | Security / Linux    |
+| [gha-prtarget-misconfig-audit.py](scripts/security/python/gha-prtarget-misconfig-audit/gha-prtarget-misconfig-audit.py) | Detects insecure usage of `pull_request_target` in GitHub Actions workflows and identifies privilege escalation risks | Security / Python |
+
+
 
 
 ## Usage

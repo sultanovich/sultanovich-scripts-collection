@@ -1,7 +1,55 @@
 #!/usr/bin/env python3
 # File name: gha-prtarget-misconfig-audit.py
-# Version: 1.2.3
+# Version: 1.0.1
 # Last updated: 2025-07-06
+# Copyright (C) 2025 sultanovich
+#
+# Changelog:
+#   1.0.1 - 2025-07-06 - Added inline license header
+#   1.0.0 - 2025-07-03 - Initial release
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+###############################################################################
+# gha-prtarget-misconfig-audit.py
+#
+# Description:
+#   This Python script audits GitHub repositories to detect insecure use of
+#   the `pull_request_target` event in GitHub Actions workflows. It flags
+#   possible privilege escalation risks like untrusted code execution, secret
+#   exposure, or unsafe usage of GITHUB_TOKEN on forks.
+#
+# Usage:
+#   python gha-prtarget-misconfig-audit.py --org <organization>
+#   python gha-prtarget-misconfig-audit.py --repo <owner/repo>
+#
+# Options:
+#   --poc     Create a benign PoC file in affected repositories (locally only)
+#   --debug   Enable verbose step-by-step analysis for debugging
+#
+# Requirements:
+#   - Python 3.9 or higher
+#   - GitHub CLI authenticated via `gh auth login`
+#   - `git` installed
+#   - Python package: PyYAML
+#
+# Notes:
+#   - This tool performs only local, read-only analysis unless --poc is used.
+#   - It is intended for authorized auditing purposes only.
+###############################################################################
+
+
 
 import os
 import sys

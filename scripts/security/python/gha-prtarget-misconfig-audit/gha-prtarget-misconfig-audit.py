@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # File name: gha-prtarget-misconfig-audit.py
-# Version: 1.0.1
-# Last updated: 2025-07-06
+# Version: 1.0.2
+# Last updated: 2025-07-11
 # Copyright (C) 2025 sultanovich
 #
 # Changelog:
+#   1.0.2 - 2025-07-11 - Replaced print-based logging with sanitized logging to file using Python's logging module
 #   1.0.1 - 2025-07-06 - Added inline license header
 #   1.0.0 - 2025-07-03 - Initial release
 #
@@ -58,6 +59,8 @@ import subprocess
 import tempfile
 import shutil
 import yaml
+import logging
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -67,17 +70,53 @@ YELLOW = "\033[1;33m"
 RED = "\033[0;31m"
 RESET = "\033[0m"
 
-LOGFILE = None
+# Configure logging - only to file, not console
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', handlers=[])
+logger = logging.getLogger(__name__)
+
+# Patterns for sanitizing sensitive information
+SENSITIVE_PATTERNS = [
+    (r'/tmp/tmp[a-zA-Z0-9_]+', '/tmp/[REDACTED]'),
+    (r'gh[pousr]_[A-Za-z0-9_]{36}', '[REDACTED_TOKEN]'),
+    (r'/home/[^/\s]+', '/home/[USER]'),
+    (r'C:\\\\Users\\\\[^\\\\]+', r'C:\\Users\\[USER]'),
+]
+
+def sanitize_message(msg):
+    """Sanitize potentially sensitive information from log messages"""
+    for pattern, replacement in SENSITIVE_PATTERNS:
+        msg = re.sub(pattern, replacement, msg)
+    return msg
+
+def setup_file_logging(log_file):
+    """Setup file logging with sanitization"""
+    file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
+    file_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
 def log(msg):
-    if LOGFILE:
-        with open(LOGFILE, 'a') as f:
-            f.write(msg + "\n")
+    """Log message to file with sanitization - replacement for original log() function"""
+    sanitized_msg = sanitize_message(msg)
+    logger.info(sanitized_msg)
 
-def info(msg): print(f"{CYAN}[INFO]{RESET} {msg}"); log(f"[INFO] {msg}")
-def ok(msg): print(f"{GREEN}[OK]{RESET} {msg}"); log(f"[OK] {msg}")
-def warn(msg): print(f"{YELLOW}[WARN]{RESET} {msg}"); log(f"[WARN] {msg}")
-def fail(msg): print(f"{RED}[FAIL]{RESET} {msg}"); log(f"[FAIL] {msg}")
+def info(msg):
+    print(f"{CYAN}[INFO]{RESET} {msg}")
+    log(f"[INFO] {msg}")
+
+def ok(msg):
+    print(f"{GREEN}[OK]{RESET} {msg}")
+    log(f"[OK] {msg}")
+
+def warn(msg):
+    print(f"{YELLOW}[WARN]{RESET} {msg}")
+    log(f"[WARN] {msg}")
+
+def fail(msg):
+    print(f"{RED}[FAIL]{RESET} {msg}")
+    log(f"[FAIL] {msg}")
+
 def debug(msg, enabled):
     if enabled:
         print(f"{YELLOW}[DEBUG]{RESET} {msg}")
@@ -101,7 +140,13 @@ def check_gh_auth():
 
 def clone_repo(repo, workdir, debug_enabled):
     debug(f"Cloning {repo} into {workdir}", debug_enabled)
-    subprocess.run(['gh', 'repo', 'clone', repo, workdir], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        subprocess.run(['gh', 'repo', 'clone', repo, workdir], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError as e:
+        # Don't expose detailed error information
+        sanitized_repo = repo.replace('/', '_')
+        fail(f"Failed to clone repository {sanitized_repo}")
+        raise
 
 def analyze_workflows(repo_path, debug_enabled):
     gha_dir = Path(repo_path) / '.github' / 'workflows'
@@ -112,16 +157,16 @@ def analyze_workflows(repo_path, debug_enabled):
         return results
 
     for file in gha_dir.glob('*.yml'):
-        debug(f"Parsing file: {file}", debug_enabled)
+        debug(f"Parsing file: {file.name}", debug_enabled)
         with open(file, 'r', encoding='utf-8-sig') as f:
             try:
                 doc = yaml.safe_load(f)
             except yaml.YAMLError:
-                debug(f"Failed to parse {file}", debug_enabled)
+                debug(f"Failed to parse {file.name}", debug_enabled)
                 continue
 
         if not isinstance(doc, dict):
-            debug(f"Skipping {file} because it's not a dictionary", debug_enabled)
+            debug(f"Skipping {file.name} because it's not a dictionary", debug_enabled)
             continue
 
         # PyYAML puede interpretar "on" como booleano True (YAML 1.1 quirk),
@@ -133,7 +178,7 @@ def analyze_workflows(repo_path, debug_enabled):
                 break
 
         if real_on_key is None:
-            debug(f"Skipping {file} due to missing 'on' key", debug_enabled)
+            debug(f"Skipping {file.name} due to missing 'on' key", debug_enabled)
             continue
 
         triggers = doc[real_on_key]
@@ -147,7 +192,7 @@ def analyze_workflows(repo_path, debug_enabled):
                     real_jobs_key = k
                     break
             if real_jobs_key is None:
-                debug(f"No 'jobs' key found in {file}", debug_enabled)
+                debug(f"No 'jobs' key found in {file.name}", debug_enabled)
                 continue
 
             jobs = doc[real_jobs_key]
@@ -209,19 +254,25 @@ def scan_repo(repo, poc, debug_enabled):
             ok(f"No risky pull_request_target usage detected in {repo}")
 
     except Exception as e:
-        fail(f"Error scanning {repo}: {e}")
+        # Sanitize error messages - only log exception type, not details
+        sanitized_repo = repo.replace('/', '_')
+        fail(f"Error scanning {sanitized_repo}: {type(e).__name__}")
+        if debug_enabled:
+            debug(f"Exception details: {sanitize_message(str(e))}", debug_enabled)
     finally:
         shutil.rmtree(workdir)
 
 def main():
-    global LOGFILE
     args = parse_args()
     check_gh_auth()
 
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     name = args.repo.replace('/', '_') if args.repo else args.org
-    LOGFILE = f"output/scan-{name}-{timestamp}.log"
+    log_file = f"output/scan-{name}-{timestamp}.log"
     Path("output").mkdir(exist_ok=True)
+    
+    # Setup file logging
+    setup_file_logging(log_file)
     log(f"Scan started at {timestamp}")
 
     if args.repo:
@@ -236,8 +287,7 @@ def main():
             scan_repo(repo, args.poc, args.debug)
 
     log("Scan completed.")
-    ok(f"Log saved to: {LOGFILE}")
+    ok(f"Log saved to: {log_file}")
 
 if __name__ == "__main__":
     main()
-

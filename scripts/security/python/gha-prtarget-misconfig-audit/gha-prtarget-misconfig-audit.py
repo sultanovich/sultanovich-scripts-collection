@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # File name: gha-prtarget-misconfig-audit.py
-# Version: 1.0.2
+# Version: 1.0.3
 # Last updated: 2025-07-11
 # Copyright (C) 2025 sultanovich
 #
 # Changelog:
+#   1.0.3 - 2025-07-12 - Sanitized debug console output to prevent clear-text exposure of sensitive content
 #   1.0.2 - 2025-07-11 - Replaced print-based logging with sanitized logging to file using Python's logging module
 #   1.0.1 - 2025-07-06 - Added inline license header
 #   1.0.0 - 2025-07-03 - Initial release
@@ -119,8 +120,10 @@ def fail(msg):
 
 def debug(msg, enabled):
     if enabled:
-        print(f"{YELLOW}[DEBUG]{RESET} {msg}")
-        log(f"[DEBUG] {msg}")
+        sanitized_msg = sanitize_message(msg)
+        print(f"{YELLOW}[DEBUG]{RESET} {sanitized_msg}")
+        log(f"[DEBUG] {sanitized_msg}")
+
 
 def parse_args():
     parser = argparse.ArgumentParser()

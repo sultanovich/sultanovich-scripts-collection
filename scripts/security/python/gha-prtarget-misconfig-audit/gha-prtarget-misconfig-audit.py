@@ -120,9 +120,9 @@ def fail(msg):
 
 def debug(msg, enabled):
     if enabled:
-        sanitized_msg = sanitize_message(msg)
-        print(f"{YELLOW}[DEBUG]{RESET} {sanitized_msg}")
-        log(f"[DEBUG] {sanitized_msg}")
+        redacted_debug_msg = "Debug event emitted (details redacted)"
+        print(f"{YELLOW}[DEBUG]{RESET} {redacted_debug_msg}")
+        log(f"[DEBUG] {redacted_debug_msg}")
 
 
 def parse_args():

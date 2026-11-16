@@ -7,10 +7,10 @@ It **never reads the contents** of credential files, private keys or secrets: it
 
 ## 🛡️ What It Collects
 
-- Installed editor extensions (VS Code, Cursor, Windsurf) and browser extensions
+- Installed editor extensions (VS Code, VSCodium, Cursor, Windsurf) and browser extensions, listed by profile with their resolved names
 - Credential file metadata (`~/.aws`, `~/.ssh`, `~/.kube`, `.npmrc`, `.netrc`, etc.)
-- Running processes (top 60 by memory) and network connections
-- Persistence: crontab, systemd user units, LaunchAgents/LaunchDaemons, shell profiles
+- Running processes (top 40 by memory, kernel threads excluded), established connections and listening sockets
+- Persistence: crontab, systemd user units, LaunchAgents/LaunchDaemons, Safari app extensions, shell profiles
 - Global npm/pip packages and files recently modified in sensitive paths
 - Shell history lines referencing credentials (redacted) and recent logins
 

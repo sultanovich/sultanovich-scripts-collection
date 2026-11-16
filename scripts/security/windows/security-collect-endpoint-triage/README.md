@@ -7,7 +7,7 @@ It **never reads the contents** of credential files, private keys or secrets: it
 
 ## 🛡️ What It Collects
 
-- Installed editor extensions (VS Code, Cursor, Windsurf) and browser extensions (Chrome, Edge, Brave)
+- Installed editor extensions (VS Code, VSCodium, Cursor, Windsurf) and browser extensions (Chrome, Edge, Brave, Vivaldi, Chromium), listed by profile with their resolved names
 - Credential file metadata (`.aws`, `.ssh`, `.kube`, `.npmrc`, `.docker`, etc.)
 - Running processes (top 50 by memory) and established TCP connections
 - Persistence: non-Microsoft scheduled tasks and `Run` registry keys

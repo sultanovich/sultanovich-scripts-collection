@@ -1,9 +1,30 @@
 # File name: security-collect-endpoint-triage.ps1
-# Version: 1.0.1
+# Version: 1.0.2
 # Last updated: 2026-11-16
 # Copyright (C) 2026 sultanovich
 #
 # Changelog:
+#   1.0.2 - 2026-11-16 - Make every section state its result instead of
+#                        printing an empty heading, and stop the collection
+#                        noise from hiding the findings:
+#                        * section 7 lists the extensions themselves - profile,
+#                          id, name and version - instead of profile folder
+#                          names, which returned no extension at all, and
+#                          resolves localised names (__MSG_..__) from the
+#                          extension locale files.
+#                        * section 8 says so when npm or pip is not installed.
+#                        * section 10 lists the credential directories in full
+#                          and never truncates them, separately from AppData,
+#                          so a day of application churn cannot push them off
+#                          the list; antivirus and browser caches, Electron
+#                          app-* trees, node_modules, VS Code CachedData and
+#                          the Firefox profile - bar the files that carry
+#                          evidence - are excluded.
+#                        * section 11 says whether the history file was absent
+#                          or simply had no match.
+#                        Also avoid assigning the automatic variables $matches
+#                        and $profile, and calling .Count on a possible scalar,
+#                        which break under Set-StrictMode -Version Latest.
 #   1.0.1 - 2026-11-16 - Fail with exit code 2 when the log cannot be written
 #                        (it used to report success); drop the "paste into a
 #                        console" usage, since the script exits the session.
@@ -79,7 +100,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'SilentlyContinue'
 
 $ScriptName    = 'security-collect-endpoint-triage.ps1'
-$ScriptVersion = '1.0.1'
+$ScriptVersion = '1.0.2'
 
 if ($Version) { Write-Output "$ScriptName $ScriptVersion"; exit 0 }
 
@@ -222,23 +243,88 @@ foreach ($k in @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Run',
     }
 }
 
+# Chromium extensions may declare a localised name as __MSG_<key>__, which is
+# meaningless to a responder. Resolve it from the extension's own locale files.
+function Resolve-ExtName {
+    param([string]$Raw, [string]$VerDirPath, [string]$DefaultLocale)
+    if ($Raw -notmatch '^__MSG_(.+)__$') { return $Raw }
+    $key = $Matches[1]
+    $locales = @()
+    if ($DefaultLocale) { $locales += $DefaultLocale }
+    $locales += @('en', 'en_US', 'en_GB', 'es', 'es_419')
+    foreach ($loc in ($locales | Select-Object -Unique)) {
+        $mp = Join-Path $VerDirPath ('_locales\' + $loc + '\messages.json')
+        if (-not (Test-Path $mp)) { continue }
+        try {
+            $m = Get-Content $mp -Raw -ErrorAction Stop | ConvertFrom-Json
+            $prop = $m.PSObject.Properties | Where-Object { $_.Name -ieq $key } | Select-Object -First 1
+            if ($prop -and $prop.Value.PSObject.Properties['message']) {
+                return [string]$prop.Value.PSObject.Properties['message'].Value
+            }
+        } catch { }
+    }
+    return $Raw
+}
+
 Add-Section '7. BROWSER EXTENSIONS'
+Add-Line 'Format: <profile> | <extension id> | <name from manifest> | <version>'
+Add-Line 'A name shown as __MSG_...__ is localised: look it up by its id.'
+Add-Line ''
+$browserFound = $false
 foreach ($p in @("$env:LOCALAPPDATA\Google\Chrome\User Data",
                  "$env:LOCALAPPDATA\Microsoft\Edge\User Data",
-                 "$env:LOCALAPPDATA\BraveSoftware\Brave-Browser\User Data")) {
-    if (Test-Path $p) {
-        Add-Line "-- $p"
-        Get-ChildItem "$p\*\Extensions" -Directory | Select-Object -First 40 |
-            ForEach-Object { Add-Line ('   ' + $_.FullName.Replace($p, '')) }
+                 "$env:LOCALAPPDATA\BraveSoftware\Brave-Browser\User Data",
+                 "$env:LOCALAPPDATA\Vivaldi\User Data",
+                 "$env:LOCALAPPDATA\Chromium\User Data")) {
+    if (-not (Test-Path $p)) { continue }
+    $browserFound = $true
+    Add-Line "-- $p"
+    # The extension id directories live one level below Extensions; the
+    # previous glob stopped at Extensions itself and listed nothing useful.
+    $exts = Get-ChildItem "$p\*\Extensions\*" -Directory -ErrorAction SilentlyContinue |
+            Select-Object -First 80
+    if (-not $exts) { Add-Line '   (no extensions installed in any profile)'; continue }
+    foreach ($ext in $exts) {
+        # Chromium keeps a Temp staging folder next to the extension ids.
+        if ($ext.Name -eq 'Temp') { continue }
+        $profileName = $ext.Parent.Parent.Name
+        $name = '<manifest unreadable>'
+        $ver  = '?'
+        $verDir = Get-ChildItem $ext.FullName -Directory -ErrorAction SilentlyContinue |
+                  Sort-Object Name | Select-Object -Last 1
+        if ($verDir) {
+            $mf = Join-Path $verDir.FullName 'manifest.json'
+            if (Test-Path $mf) {
+                try {
+                    $j = Get-Content $mf -Raw -ErrorAction Stop | ConvertFrom-Json
+                    if ($j.PSObject.Properties['name'])    { $name = [string]$j.PSObject.Properties['name'].Value }
+                    if ($j.PSObject.Properties['version']) { $ver  = [string]$j.PSObject.Properties['version'].Value }
+                    $defLoc = ''
+                    if ($j.PSObject.Properties['default_locale']) { $defLoc = [string]$j.PSObject.Properties['default_locale'].Value }
+                    $name = Resolve-ExtName -Raw $name -VerDirPath $verDir.FullName -DefaultLocale $defLoc
+                } catch { $name = '<manifest unparsable>' }
+            }
+        }
+        Add-Line ('   ' + $profileName + ' | ' + $ext.Name + ' | ' + $name + ' | ' + $ver)
     }
 }
+if (-not $browserFound) { Add-Line '-- RESULT: no browser profile directory found' }
 
 Add-Section '8. GLOBAL PACKAGES'
 if (Get-Command npm -ErrorAction SilentlyContinue) {
     Add-Line '-- npm -g'; npm ls -g --depth=0 | ForEach-Object { Add-Line ('   ' + $_) }
+} else {
+    Add-Line '-- RESULT: npm is not installed on this host'
 }
 if (Get-Command pip -ErrorAction SilentlyContinue) {
-    Add-Line '-- pip'; pip list | Select-Object -Last 30 | ForEach-Object { Add-Line ('   ' + $_) }
+    # Note: invoking pip.exe can trigger an antivirus "unknown file" prompt
+    # (Avast CyberCapture and similar). pip generates a per-installation,
+    # unsigned launcher, so the binary is unique to this host. Expected noise.
+    $pkgs = pip list 2>$null
+    Add-Line ('-- pip (' + [Math]::Max(0, (@($pkgs).Count - 2)) + ' packages)')
+    $pkgs | ForEach-Object { Add-Line ('   ' + $_) }
+} else {
+    Add-Line '-- RESULT: pip is not installed on this host'
 }
 
 Add-Section '9. SOFTWARE INSTALLED IN THE LAST 30 DAYS'
@@ -257,22 +343,75 @@ Add-Table (Get-ItemProperty $uninstallKeys |
            Sort-Object InstallDate -Descending)
 
 Add-Section '10. FILES MODIFIED IN SENSITIVE PATHS (last 30 days)'
-foreach ($p in @("$env:USERPROFILE\.aws", "$env:USERPROFILE\.ssh", "$env:APPDATA")) {
-    if (Test-Path $p) {
-        Get-ChildItem $p -Recurse -File |
-            Where-Object { $_.LastWriteTime -gt (Get-Date).AddDays(-30) } |
-            Select-Object -First 30 |
-            ForEach-Object { Add-Line ('   ' + $_.FullName + ' | ' + $_.LastWriteTime) }
-    }
+Add-Line 'Antivirus, browser and Electron caches are excluded: they are rewritten'
+Add-Line 'constantly and would otherwise crowd out the real findings.'
+Add-Line 'Most recently modified first, capped at 40 entries.'
+Add-Line ''
+# Firefox writes telemetry, IndexedDB, shader and session-store state into the
+# profile on every page load, and uses different directory names than Chromium,
+# so it needs its own patterns rather than the Chromium ones.
+$cacheNoise = '\\node_modules\\|\\app-[0-9][^\\]*\\(modules|resources)\\|' +
+              '\\(Cache|Cache_Data|CachedData|GPUCache|Code Cache|ShaderCache|GrShaderCache|CacheStorage|' +
+              'Service Worker|Local Storage|Session Storage|IndexedDB|Crashpad|' +
+              'CrashReports|Crash Reports|Dictionaries|blob_storage|INetCache|WebCache|Logs|' +
+              'Recent|AutomaticDestinations|CustomDestinations|Spelling)\\|' +
+              '\\Mozilla\\Firefox\\(Profiles|Background Tasks Profiles)\\[^\\]+\\' +
+              '(?!(extensions|addons|extension-preferences|extension-settings)\.json$' +
+              '|prefs\.js$|user\.js$)|' +
+              '\\(Network Persistent State|TransportSecurity|Trust Tokens)$|' +
+              '-journal$|-wal$|-shm$|\\LOG(\.old)?$|\\LOCK$|\\CURRENT$|\\MANIFEST-|' +
+              '\.(ldb|sst|pma|etl|tmp)$'
+$cutoff = (Get-Date).AddDays(-30)
+
+# Credential directories are listed in full and never capped. Sorting them
+# together with AppData lets a single day of application churn push them out,
+# and they are the whole point of this section.
+Add-Line '-- credential directories (complete, never truncated)'
+$credHits = @()
+foreach ($p in @("$env:USERPROFILE\.aws", "$env:USERPROFILE\.ssh",
+                 "$env:USERPROFILE\.kube", "$env:USERPROFILE\.docker",
+                 "$env:USERPROFILE\.gnupg", "$env:USERPROFILE\.config")) {
+    if (-not (Test-Path $p)) { continue }
+    $credHits += Get-ChildItem $p -Recurse -File -ErrorAction SilentlyContinue |
+                 Where-Object { $_.LastWriteTime -gt $cutoff -and $_.FullName -notmatch $cacheNoise }
+}
+if ($credHits) {
+    $credHits | Sort-Object LastWriteTime -Descending |
+        ForEach-Object { Add-Line ('   ' + $_.FullName + ' | ' + $_.LastWriteTime) }
+} else {
+    Add-Line '   RESULT: no credential file modified in the last 30 days.'
+}
+
+Add-Line '-- application data (40 most recently modified)'
+$appHits = @()
+if (Test-Path $env:APPDATA) {
+    $appHits = Get-ChildItem $env:APPDATA -Recurse -File -ErrorAction SilentlyContinue |
+               Where-Object { $_.LastWriteTime -gt $cutoff -and $_.FullName -notmatch $cacheNoise } |
+               Sort-Object LastWriteTime -Descending | Select-Object -First 40
+}
+if ($appHits) {
+    $appHits | ForEach-Object { Add-Line ('   ' + $_.FullName + ' | ' + $_.LastWriteTime) }
+} else {
+    Add-Line '   RESULT: no file modified in the last 30 days outside excluded caches.'
 }
 
 Add-Section '11. POWERSHELL HISTORY REFERENCING CREDENTIALS (redacted)'
 $h = "$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 if (Test-Path $h) {
-    Select-String -Path $h -Pattern 'AKIA|aws_secret|AWS_SECRET|credentials' |
-        Select-Object -Last 30 |
-        ForEach-Object { Add-Line ('   ' + $_.Line.Substring(0, [Math]::Min(200, $_.Line.Length))) }
-} else { Add-Line '   (no PSReadLine history found)' }
+    $histHits = Select-String -Path $h -Pattern 'AKIA|aws_secret|AWS_SECRET|credentials' |
+               Select-Object -Last 30
+    if ($histHits) {
+        $histHits | ForEach-Object { Add-Line ('   ' + $_.Line.Substring(0, [Math]::Min(200, $_.Line.Length))) }
+    } else {
+        Add-Line '   RESULT: history file present but no command references'
+        Add-Line '   credentials. Empty BY RESULT, not because the check failed.'
+        Add-Line ('   File: ' + $h)
+    }
+} else {
+    Add-Line '   RESULT: no PSReadLine history file found at'
+    Add-Line ('   ' + $h)
+    Add-Line '   Either history is disabled or this user has not used PowerShell.'
+}
 
 Add-Section '12. RECENT LOGONS'
 # The Security event log is readable by administrators only.

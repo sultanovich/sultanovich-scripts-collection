@@ -29,6 +29,8 @@ A curated collection of scripts for system administration, security, and monitor
 | [delete-linux-local-user.sh](scripts/sysadmin/linux/delete-linux-local-user.sh) | Bash script to securely delete a local Linux user (with optional home dir removal), secure logging, dry-run mode, and compliance protections. | Sysadmin / Linux   |
 | [security-check-cve-2025-4322.sh](scripts/security/linux/security-check-cve-2025-4322.sh) | Checks for CVE-2025-4322 vulnerability (Motors WordPress Theme) and optionally attempts a safe PoC (admin password change) | Security / Linux    |
 | [gha-prtarget-misconfig-audit.py](scripts/security/python/gha-prtarget-misconfig-audit/gha-prtarget-misconfig-audit.py) | Detects insecure usage of `pull_request_target` in GitHub Actions workflows and identifies privilege escalation risks | Security / Python |
+| [security-collect-endpoint-triage.sh](scripts/security/linux/security-collect-endpoint-triage/security-collect-endpoint-triage.sh) | Read-only incident triage collector for Linux/macOS endpoints: editor and browser extensions, credential file metadata (never contents), processes, network connections, persistence and shell history, with secret redaction | Security / Linux, macOS |
+| [security-collect-endpoint-triage.ps1](scripts/security/windows/security-collect-endpoint-triage/security-collect-endpoint-triage.ps1) | Read-only incident triage collector for Windows endpoints: editor and browser extensions, credential file metadata (never contents), processes, network connections, persistence, recently installed software and PowerShell history, with secret redaction | Security / Windows |
 
 
 
